@@ -1,0 +1,73 @@
+#!/bin/sh
+
+# Format this as a manpage with `perldoc xsudo`.
+: <<'=cut'
+
+=head1 NAME
+
+B<xsudo> - Forward X11 authentication tokens to programs run under sudo
+
+=head1 SYNOPSIS
+
+B<xsudo> I<sudo-arguments> ...
+
+=head1 DESCRIPTION
+
+FIXME
+
+=cut
+
+# Create a new X authority file containing just the relevant token:
+auth_filename=`mktemp -t xsudo.XXXXXX`
+xauth extract - $DISPLAY | xauth -f $auth_filename merge -
+export XAUTHORITY=$auth_filename
+
+# Figure out the target sudo user:
+sudo_user=root
+while getopts ':u:' OPT; do
+    case $OPT in
+    u)
+	sudo_user=$OPTARG
+	break
+	;;
+    esac
+done
+
+# Allow the target user to access the new authority file:
+setfacl -m u:$sudo_user:rw $auth_filename
+
+# Hand over to sudo:
+exec sudo "$@"
+
+: <<'=cut'
+
+=head1 AUTHOR
+
+Peter Oliver
+
+=head1 BUGS
+
+See L<https://github.com/mavit/xsudo/issues>.
+
+=head1 LICENCE
+
+Copyright 2012, Peter Oliver.
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+=head1 SEE ALSO
+
+L<https://github.com/mavit/xsudo>, L<sudo(1)>, L<xauth(1)>.
+
+=cut
