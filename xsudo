@@ -13,7 +13,17 @@ B<xsudo> I<sudo-arguments> ...
 
 =head1 DESCRIPTION
 
-FIXME
+Running X Window programs as a different user with sudo generally
+doesn't work because the target user can't authenticate with the X11
+server.
+
+This program copies your authorisation token into a temporary file
+readable by the target user.  Call it in place of sudo.
+
+In addition, you need to make sure that the DISPLAY and XAUTHORITY
+environment variables are passed to the program run by sudo.  See the
+C<env_keep> option in L<sudoers(5)> if you find that this is not the
+case.
 
 =cut
 
