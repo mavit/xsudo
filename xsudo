@@ -27,9 +27,14 @@ case.
 
 =cut
 
+# Munge $DISPLAY into a form understood by xauth:
+if [[ $DISPLAY = localhost:* ]]; then
+    xauth_display=unix:${DISPLAY#localhost:}
+fi
+
 # Create a new X authority file containing just the relevant token:
 auth_filename=`mktemp -t xsudo.XXXXXX`
-xauth extract - $DISPLAY | xauth -f $auth_filename merge -
+xauth extract - ${xauth_display:-$DISPLAY} | xauth -f $auth_filename merge -
 export XAUTHORITY=$auth_filename
 
 # Figure out the target sudo user:
