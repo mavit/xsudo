@@ -27,6 +27,23 @@ case.
 
 =cut
 
+# If /bin/sh isn't Korn shell or Bash, switch:
+if type [[ >/dev/null 2>&1; then
+    :
+else
+    for better_shell in ksh bash; do
+        better_shell_path=`command -v $better_shell`
+        if [ -x "$better_shell_path" ]; then
+            exec $better_shell $0
+        fi
+    done
+    echo "Korn or Bash shell required."
+    exit 2
+fi
+
+set -o errexit
+set -o nounset
+
 # Munge $DISPLAY into a form understood by xauth:
 if [[ $DISPLAY = localhost:* ]]; then
     xauth_display=unix:${DISPLAY#localhost:}
