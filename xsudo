@@ -49,7 +49,7 @@ while getopts ':u:' OPT; do
 done
 
 # Allow the target user to access the new authority file:
-setfacl -m u:$sudo_user:rw $auth_filename
+setfacl -m u:$sudo_user:rw- $auth_filename
 
 # Hand over to sudo:
 exec sudo "$@"
