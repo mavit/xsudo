@@ -44,6 +44,37 @@ fi
 set -o errexit
 set -o nounset
 
+function make_file_readable_by_user_posix {
+    setfacl -m "u:$2:rw-" $1
+}
+
+function make_file_readable_by_user_nfsv4 {
+    chmod "A+user:$2:read_data:allow" $1
+}
+
+
+case `uname -s` in
+SunOS)
+    # /tmp is typically tmpfs on Solaris, which does not support ACLs.
+    export TMPDIR=${TMPDIR:-/var/tmp}
+
+    # Use the appropriate ACL type for the filesystem:
+    function make_file_readable_by_user {
+        if [[ `df -n auth_filename | cut -d: -f 2` == 'zfs' ]]; then
+            make_file_readable_by_user_nfsv4 "$@"
+        else
+            make_file_readable_by_user_posix "$@"
+        fi
+    }
+    ;;
+*)
+    function make_file_readable_by_user {
+        make_file_readable_by_user_posix "$@"
+    }
+    ;;
+esac
+
+
 # Munge $DISPLAY into a form understood by xauth:
 if [[ $DISPLAY = localhost:* ]]; then
     xauth_display=unix:${DISPLAY#localhost:}
@@ -66,7 +97,7 @@ while getopts ':u:' OPT; do
 done
 
 # Allow the target user to access the new authority file:
-setfacl -m u:$sudo_user:rw- $auth_filename
+make_file_readable_by_user $auth_filename $sudo_user
 
 # Hand over to sudo:
 exec sudo "$@"
