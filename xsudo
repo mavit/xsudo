@@ -52,8 +52,21 @@ function make_file_readable_by_user_nfsv4 {
     chmod "A+user:$2:read_data:allow" $1
 }
 
+function make_file_readable_by_user_aixc {
+    aclput $1 <<EOF
+        extended permissions
+            enabled
+            permit r--  u:$2
+EOF
+}
+
 
 case `uname -s` in
+AIX)
+    function make_file_readable_by_user {
+        make_file_readable_by_user_aixc "$@"
+    }
+    ;;
 SunOS)
     # /tmp is typically tmpfs on Solaris, which does not support ACLs.
     export TMPDIR=${TMPDIR:-/var/tmp}
